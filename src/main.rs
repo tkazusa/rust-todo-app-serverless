@@ -1,7 +1,12 @@
 use actix_web::{get, App, HttpResponse, HttpServer, ResponseError};
 use askama::Template;
 use thiserror::Error;
+use tokio;
+use std::collections::HashMap;
 
+use rusoto_core::Region;
+// 今回紹介する①アイテム登録(PutItemInput) ②アイテム取得(GetItemInput) ③アイテム削除(DeleteItemInput)で使用するstructのみを宣言しています
+use rusoto_dynamodb::{DynamoDb, DynamoDbClient, GetItemInput, PutItemInput, ScanInput, ListTablesInput, DeleteItemInput, AttributeValue};
 struct TodoEntry {
     id: u32,
     text: String,
@@ -23,6 +28,71 @@ enum MyError {
 
 impl ResponseError for MyError {}
 
+
+#[tokio::main]
+async fn main() {
+    let client = DynamoDbClient::new(Region::ApNortheast1);
+    let list_tables_input: ListTablesInput = Default::default();
+    
+    let mut create_key: HashMap<String, AttributeValue> = HashMap::new();
+    // HashMapのkeyにはパーティションキーで指定した文字列を
+    // valueにはLambdaコール時に受け渡されるイベント引数を指定します
+    // HashMap への key-value は insert で一つづつ追加
+    create_key.insert(String::from("id"), AttributeValue {
+        s: Some(String::from("test")),
+        ..Default::default()
+    });
+
+   create_key.insert(String::from("text"), AttributeValue {
+        s: Some(String::from("hello world")),
+        ..Default::default()
+    });
+
+    let create_serials = PutItemInput {
+        item: create_key,
+        table_name: String::from("rust-todo"),
+        ..Default::default()
+    };
+
+    let scan_input = ScanInput {
+        table_name: String::from("rust-todo"),
+        // 
+        limit: Some(10),
+        ..Default::default()
+    };
+
+    match client.scan(scan_input).await {
+        Ok(result) => match result.items {
+            Some(v) => for kv in v.iter() {
+                println!("> {:?}", kv);
+            
+            }
+            None => println!("None")
+        },
+        Err(error) => {
+            panic!("Error: {:?}", error);
+        },
+    };
+
+ 
+    match client.list_tables(list_tables_input).await {
+        Ok(output) => match output.table_names {
+            Some(table_name_list) => {
+                println!("Tables in database:");
+ 
+                for table_name in table_name_list {
+                    println!("{}", table_name);
+                }
+            }
+            None => println!("No tables in database!"),
+        },
+        Err(error) => {
+            println!("Error: {:?}", error);
+        }
+    }
+}
+
+/* 
 // MyError は actix_web::ResponseError を実装しているので、
 // index の戻り値に MyError を使うことが出来ます。
 #[get("/")]
@@ -69,3 +139,4 @@ async fn main() -> Result<(), actix_web::Error> {
 
 // actix_web のテストについては actic_web の testing の項目を参考い
 // https://actix.rs/docs/testing/
+*/
