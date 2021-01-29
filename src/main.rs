@@ -64,8 +64,12 @@ async fn main() {
     match client.scan(scan_input).await {
         Ok(result) => match result.items {
             Some(v) => for kv in v.iter() {
-                println!("> {:?}", kv);
-            
+                for (k1, v1) in kv {
+                    match &v1.s {
+                        Some(t) => println!("{:?}, {:?}", k1, t),
+                        None => print!("None")
+                    }
+                }
             }
             None => println!("None")
         },
