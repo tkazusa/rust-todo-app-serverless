@@ -33,10 +33,12 @@ impl ResponseError for MyError {}
 async fn index() -> Result<HttpResponse, MyError> {
     let mut entries = Vec::new();
 
-    for items in scan().unwrap().items.unwrap().iter(){
+    let items_vector = scan().unwrap().items.unwrap();
+
+    for item in items_vector.iter(){
         entries.push(TodoEntry{
-            id: items["id"].s.as_ref().unwrap().to_string(),
-            text: items["text"].s.as_ref().unwrap().to_string()
+            id: item["id"].s.as_ref().unwrap().to_string(),
+            text: item["text"].s.as_ref().unwrap().to_string()
         })};
 
     // IndexTemplate は Template から derive してる、多分 html.render で HTML を生成
