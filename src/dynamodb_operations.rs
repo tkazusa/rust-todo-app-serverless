@@ -3,16 +3,17 @@ use std::collections::HashMap;
 
 use rusoto_core::{Region, RusotoError};
 // 今回紹介する①アイテム登録(PutItemInput) ②アイテム取得(GetItemInput) ③アイテム削除(DeleteItemInput)で使用するstructのみを宣言しています
-use rusoto_dynamodb::{DynamoDb, DynamoDbClient, GetItemInput, PutItemInput, ScanInput, ScanOutput, ScanError, ListTablesInput, DeleteItemInput, AttributeValue};
-
+use rusoto_dynamodb::{
+    DynamoDb, DynamoDbClient,
+    PutItemInput, PutItemOutput, PutItemError,
+    ScanInput, ScanOutput, ScanError, AttributeValue};
 pub struct TodoEntry {
     id: String,
     text: String,
 }
 
-
 #[tokio::main(flavor = "current_thread")]
-pub async fn add_task(todoentry: TodoEntry) {
+pub async fn add_task(todoentry: TodoEntry) -> Result<PutItemOutput, RusotoError<PutItemError>>{
     let mut create_key: HashMap<String, AttributeValue> = HashMap::new();
     // HashMapのkeyにはパーティションキーで指定した文字列を
     // valueにはLambdaコール時に受け渡されるイベント引数を指定します
@@ -34,18 +35,8 @@ pub async fn add_task(todoentry: TodoEntry) {
     };
 
     let client = DynamoDbClient::new(Region::ApNortheast1);
-
-    match client.put_item(create_serials).await {
-        Ok(result) => {
-            match result.attributes {
-                Some(_) => println!("some"),
-                None => println!("none"),
-            }
-        },
-        Err(error) => {
-            panic!("Error: {:?}", error);
-        },
-    };
+    client.put_item(create_serials).await
+    
 }
 
 // runtime に tokio を使うことを宣言
