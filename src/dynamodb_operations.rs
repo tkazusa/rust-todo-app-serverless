@@ -41,9 +41,7 @@ pub async fn add_task(todoentry: TodoEntry) -> Result<PutItemOutput, RusotoError
 
 // runtime に tokio を使うことを宣言
 #[tokio::main(flavor = "current_thread")]
-pub async fn scan() -> Result<ScanOutput, RusotoError<ScanError>> {
-    let client = DynamoDbClient::new(Region::ApNortheast1);
-    
+pub async fn scan(client: DynamoDbClient) -> Result<ScanOutput, RusotoError<ScanError>> {
     let scan_input = ScanInput {
         table_name: String::from("rust-todo"),
         // 
@@ -52,3 +50,5 @@ pub async fn scan() -> Result<ScanOutput, RusotoError<ScanError>> {
     };
     client.scan(scan_input).await
 }
+
+

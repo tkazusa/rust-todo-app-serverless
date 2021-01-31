@@ -2,8 +2,15 @@ use actix_web::{get, App, HttpResponse, HttpServer, ResponseError};
 use askama::Template;
 use thiserror::Error;
 
+use rusoto_core::Region;
+use rusoto_dynamodb::{
+    DynamoDbClient
+};
+
 mod dynamodb_operations;
 use crate::dynamodb_operations::scan;
+
+
 
 struct TodoEntry {
     id: String,
@@ -26,14 +33,14 @@ enum MyError {
 
 impl ResponseError for MyError {}
 
-
 // MyError は actix_web::ResponseError を実装しているので、
 // index の戻り値に MyError を使うことが出来ます。
 #[get("/")]
 async fn index() -> Result<HttpResponse, MyError> {
     let mut entries = Vec::new();
 
-    let items_vector = scan().unwrap().items.unwrap();
+    let client = DynamoDbClient::new(Region::ApNortheast1);
+    let items_vector = scan(client).unwrap().items.unwrap();
 
     for item in items_vector.iter(){
         entries.push(TodoEntry{
