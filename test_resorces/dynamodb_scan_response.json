@@ -1,0 +1,16 @@
+{
+    "Items": [
+        {
+            "id": {
+                "S": "test"
+            },
+            "text": {
+                "S": "hello world"
+            }
+        }
+    ],
+    "Count": 1,
+    "ScannedCount": 1,
+    "ConsumedCapacity": null
+}
+

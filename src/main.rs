@@ -41,6 +41,10 @@ async fn index() -> Result<HttpResponse, MyError> {
 
     let client = DynamoDbClient::new(Region::ApNortheast1);
     let items_vector = scan(client).unwrap().items.unwrap();
+    
+    let client = DynamoDbClient::new(Region::ApNortheast1);
+    let test = scan(client);
+    println!("{:?}", test);
 
     for item in items_vector.iter(){
         entries.push(TodoEntry{

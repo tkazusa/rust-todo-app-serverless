@@ -52,3 +52,25 @@ pub async fn scan(client: DynamoDbClient) -> Result<ScanOutput, RusotoError<Scan
 }
 
 
+#[cfg(test)]
+mod test {
+    use super::*;
+    use rusoto_mock::{MockCredentialsProvider, MockRequestDispatcher, MockResponseReader, ReadMockResponse};
+
+    #[test]
+    fn scan_todoentories_in_dynamodb() {
+        let body = MockResponseReader::read_response(
+            "test_resorces",
+            "dynamodb_scan_response.json",
+        );
+        let mock = MockRequestDispatcher::with_status(200).with_body(&body);
+        let client = DynamoDbClient::new_with(mock, MockCredentialsProvider, Region::ApNortheast1);
+        let item_vector = scan(client).unwrap().items.unwrap();
+        
+        let test_id = item_vector[0]["id"].s.as_ref().unwrap().to_string();
+        assert_eq!("test", test_id);
+        
+        let test_text = item_vector[0]["text"].s.as_ref().unwrap().to_string();
+        assert_eq!("hello world", test_text);
+    }
+}
