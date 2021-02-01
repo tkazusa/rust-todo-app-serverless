@@ -17,7 +17,7 @@ RUN rm -f target/release/deps/todo*
 RUN cargo build --release
 
 # リリース用イメージには debian を使用
-FROM debian:10.4
-
+FROM ubuntu:20.04
+RUN apt-get update && apt-get install -y openssl
 COPY --from=builder /todo/target/release/todo /usr/local/bin/todo
 CMD ["todo"]
