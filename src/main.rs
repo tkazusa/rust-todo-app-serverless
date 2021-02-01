@@ -39,10 +39,6 @@ async fn index() -> Result<HttpResponse, MyError> {
 
     let client = DynamoDbClient::new(Region::ApNortheast1);
     let items_vector = scan(client).unwrap().items.unwrap();
-    
-    let client = DynamoDbClient::new(Region::ApNortheast1);
-    let test = scan(client);
-    println!("{:?}", test);
 
     for item in items_vector.iter(){
         entries.push(TodoEntry{
@@ -77,7 +73,7 @@ async fn main() -> Result<(), actix_web::Error> {
 
 }
 
-// actix_web のテストについては actic_web の testing の項目を参考い
+// actix_web のテストについては actic_web の testing の項目を参考
 // https://actix.rs/docs/testing/
 #[cfg(test)]
 mod tests {
