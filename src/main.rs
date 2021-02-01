@@ -10,8 +10,6 @@ use rusoto_dynamodb::{
 mod dynamodb_operations;
 use crate::dynamodb_operations::scan;
 
-
-
 struct TodoEntry {
     id: String,
     text: String,
@@ -81,3 +79,16 @@ async fn main() -> Result<(), actix_web::Error> {
 
 // actix_web のテストについては actic_web の testing の項目を参考い
 // https://actix.rs/docs/testing/
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use actix_web::{test, web, App};
+
+    #[actix_rt::test]
+    async fn test_index_get() {
+        let mut app = test::init_service(App::new().service(index)).await;
+        let req = test::TestRequest::with_header("content-type", "text/plain").to_request();
+        let resp = test::call_service(&mut app, req).await;
+        assert!(resp.status().is_success());
+    }
+}
