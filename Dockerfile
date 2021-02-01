@@ -20,4 +20,4 @@ RUN cargo build --release
 FROM debian:10.4
 
 COPY --from=builder /todo/target/release/todo /usr/local/bin/todo
-CMD ["bash"]
+CMD ["todo"]
