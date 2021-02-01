@@ -2153,7 +2153,6 @@ dependencies = [
  "actix-rt",
  "actix-web",
  "askama",
- "http",
  "rusoto_core",
  "rusoto_dynamodb",
  "rusoto_mock",
