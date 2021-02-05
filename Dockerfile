@@ -1,23 +1,8 @@
-FROM rust:1.49 AS builder
+# AWS Lambda 用に提供されているイメージを活用
+FROM public.ecr.aws/lambda/provided:al2
 
-WORKDIR /todo
+# 実行ファイルを起動するようにするため、ファイル名を "bootstrap" に変更する
+COPY ./target/release/hello-container ${LAMBDA_RUNTIME_DIR}/bootstrap
 
-# 更新頻度が低い Cargo.toml は序盤で Copy
-COPY Cargo.toml Cargo.toml
-RUN mkdir src
-# Cargo.toml の内容だけ build しておきたいから、からの main.rs を作成
-RUN echo "fn main(){}" > src/main.rs
-# その上で、cargo build する
-RUN cargo build --release
-
-# 変更サれやすい ./src 以下はこのタイミングで Copy & build
-COPY ./src ./src
-COPY ./templates ./templates
-RUN rm -f target/release/deps/todo*
-RUN cargo build --release
-
-# リリース用イメージには debian を使用
-FROM ubuntu:20.04
-RUN apt-get update && apt-get install -y openssl
-COPY --from=builder /todo/target/release/todo /usr/local/bin/todo
-CMD ["todo"]
+# カスタムランタイム同様ハンドラ名は利用しないため、適当な文字列を指定する。
+CMD [ "lambda-handler" ]
