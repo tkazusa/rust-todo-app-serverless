@@ -16,5 +16,6 @@ VOLUME /code
 #VOLUME /root/.cargo/git
 
 WORKDIR /code
+RUN yum install -y openssl-devel
 # provided:al2 はランタイム用の設定になっているので、ENTRYPOINTをビルド用に書き換える
-ENTRYPOINT ["cargo", "build", "--release"
+ENTRYPOINT ["cargo", "build", "--release"]
