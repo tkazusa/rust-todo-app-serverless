@@ -1,6 +1,6 @@
 name: Build and Push
 
-on: [push]
+on: [commit]
 jobs:
   build:
     runs-on: ubuntu-latest
