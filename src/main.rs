@@ -1,6 +1,19 @@
 use lamedh_runtime::{Context, handler_fn, run, Error};
 use serde_json::{json, Value};
 
+use rusoto_core::Region;
+use rusoto_dynamodb::{
+    DynamoDbClient
+};
+
+mod dynamodb_operations;
+use crate::dynamodb_operations::scan;
+
+struct TodoEntry {
+    id: String,
+    text: String,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     run(handler_fn(func)).await?;
@@ -8,7 +21,17 @@ async fn main() -> Result<(), Error> {
 }
 
 async fn func(event: Value, _: Context) -> Result<Value, Error> {
-    let first_name = event["firstName"].as_str().unwrap_or("world");
+    let mut entries = Vec::new();
 
-    Ok(json!({ "message": format!("Hello, {}!", first_name) }))
+    let client = DynamoDbClient::new(Region::ApNortheast1);
+    let items_vector = scan(client).await.items.unwrap();
+
+    for item in items_vector.iter(){
+        entries.push(TodoEntry{
+            id: item["id"].s.as_ref().unwrap().to_string(),
+            text: item["text"].s.as_ref().unwrap().to_string()
+        })};
+
+    println!("{}", entries[0].id);
+    Ok(json!({ "message": format!("Hello {}!", entries[0].id)}))
 }

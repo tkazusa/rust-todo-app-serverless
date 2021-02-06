@@ -1,4 +1,3 @@
-use tokio;
 use std::collections::HashMap;
 
 use rusoto_core::{Region, RusotoError};
@@ -11,7 +10,7 @@ pub struct TodoEntry {
     id: String,
     text: String,
 }
-
+/* 
 #[tokio::main(flavor = "current_thread")]
 pub async fn add_task(todoentry: TodoEntry) -> Result<PutItemOutput, RusotoError<PutItemError>>{
     let mut create_key: HashMap<String, AttributeValue> = HashMap::new();
@@ -38,34 +37,34 @@ pub async fn add_task(todoentry: TodoEntry) -> Result<PutItemOutput, RusotoError
     client.put_item(create_serials).await
     
 }
+*/
 
-// runtime に tokio を使うことを宣言
-#[tokio::main(flavor = "current_thread")]
-pub async fn scan(client: DynamoDbClient) -> Result<ScanOutput, RusotoError<ScanError>> {
+pub async fn scan(client: DynamoDbClient) -> ScanOutput {
     let scan_input = ScanInput {
         table_name: String::from("rust-todo"),
         // 
         limit: Some(10),
         ..Default::default()
     };
-    client.scan(scan_input).await
+    client.scan(scan_input).await.unwrap()
 }
 
 
 #[cfg(test)]
 mod test {
     use super::*;
+    use tokio;
     use rusoto_mock::{MockCredentialsProvider, MockRequestDispatcher, MockResponseReader, ReadMockResponse};
 
-    #[test]
-    fn scan_todoentories_in_dynamodb() {
+    #[tokio::test]
+    async fn scan_todoentories_in_dynamodb() {
         let body = MockResponseReader::read_response(
-            "test_resorces",
+            "test_resources",
             "dynamodb_scan_response.json",
         );
         let mock = MockRequestDispatcher::with_status(200).with_body(&body);
         let client = DynamoDbClient::new_with(mock, MockCredentialsProvider, Region::ApNortheast1);
-        let item_vector = scan(client).unwrap().items.unwrap();
+        let item_vector = scan(client).await.items.unwrap();
         
         let test_id = item_vector[0]["id"].s.as_ref().unwrap().to_string();
         assert_eq!("test", test_id);
