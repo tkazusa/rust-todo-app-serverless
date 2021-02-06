@@ -30,7 +30,6 @@ FROM public.ecr.aws/lambda/provided:al2
 
 # 実行ファイルを起動するようにするため、ファイル名を "bootstrap" に変更する
 # COPY ./target/release/${PACKAGE_NAME} ${LAMBDA_RUNTIME_DIR}/bootstrap
-
 COPY --from=builder /todo/target/release/todo ${LAMBDA_RUNTIME_DIR}/bootstrap
 
 # カスタムランタイム同様ハンドラ名は利用しないため、適当な文字列を指定する。
