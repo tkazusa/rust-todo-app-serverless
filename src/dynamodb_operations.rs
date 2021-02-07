@@ -1,3 +1,4 @@
+
 use std::collections::HashMap;
 
 use rusoto_core::{Region, RusotoError};
@@ -21,18 +22,15 @@ pub async fn add_task(todoentry: TodoEntry) -> Result<PutItemOutput, RusotoError
         s: Some(String::from(todoentry.id)),
         ..Default::default()
     });
-
    create_key.insert(String::from("text"), AttributeValue {
         s: Some(String::from(todoentry.text)),
         ..Default::default()
     });
-
     let create_serials = PutItemInput {
         item: create_key,
         table_name: String::from("rust-todo"),
         ..Default::default()
     };
-
     let client = DynamoDbClient::new(Region::ApNortheast1);
     client.put_item(create_serials).await
     

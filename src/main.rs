@@ -32,6 +32,5 @@ async fn func(event: Value, _: Context) -> Result<Value, Error> {
             text: item["text"].s.as_ref().unwrap().to_string()
         })};
 
-    println!("{}", entries[0].id);
-    Ok(json!({ "message": format!("Hello {}!", entries[0].id)}))
+    Ok(json!(format!("Hello {} from Rust Container on AWS Lambda!", entries[0].id)))
 }
