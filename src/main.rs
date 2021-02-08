@@ -1,7 +1,11 @@
-use lambda_http::{lambda, IntoResponse, Request, RequestExt, Response, Body};
-use lamedh_runtime::{Context, handler_fn, run, Error};
-use serde_json::{json, Value};
+use lamedh_runtime::{run};
 use askama::Template;
+
+use lamedh_http::{
+    lambda::{Context, Error},
+    IntoResponse, Request, Response, handler
+ };
+ 
 
 use rusoto_core::Region;
 use rusoto_dynamodb::{
@@ -17,7 +21,6 @@ struct TodoEntry {
     text: String,
 }
 
-//#[template(path = "index.html")] で index.html と紐付けられている
 #[derive(Template)]
 #[template(path = "index.html")]
 struct IndexTemplate {
@@ -26,11 +29,11 @@ struct IndexTemplate {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    run(handler_fn(func)).await?;
+    run(handler(func)).await?;
     Ok(())
 }
 
-async fn func(event: Value, _: Context) -> Result<Value, Error> {
+async fn func(_: Request, _: Context) -> Result<impl IntoResponse, Error> {
     let mut entries = Vec::new();
 
     let client = DynamoDbClient::new(Region::ApNortheast1);
@@ -46,13 +49,9 @@ async fn func(event: Value, _: Context) -> Result<Value, Error> {
     let html = IndexTemplate { entries };
     let response_body = html.render()?;
 
-    //Ok(json!(format!("Hello {} from Rust Container on AWS Lambda!", entries[0].id)))
-    Ok(
-        json!(
-            {"headers":
-                {"Content-Type": "text/html"},
-                "body": response_body
-            }
-        )
-    )
+    Ok(Response::builder()
+        .status(200)
+        .header("Content-Type", "text/html; charset=UTF-8")
+        .body(response_body)
+        .expect("failed to render response")) 
 }
