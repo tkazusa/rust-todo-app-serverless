@@ -1,16 +1,12 @@
-use lamedh_runtime::{run};
 use askama::Template;
-
+use lamedh_runtime::run;
 use lamedh_http::{
     lambda::{Context, Error},
     IntoResponse, Request, Response, handler
- };
- 
-
-use rusoto_core::Region;
-use rusoto_dynamodb::{
-    DynamoDbClient
 };
+ 
+use rusoto_core::Region;
+use rusoto_dynamodb::DynamoDbClient;
 
 mod dynamodb_operations;
 use crate::dynamodb_operations::scan;
@@ -29,10 +25,13 @@ struct IndexTemplate {
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    // Adapts a Handler to the lamedh_runtime::run interface
+    // run(handler())の形で、request::LambdaRequest] をデシリアライズ
     run(handler(func)).await?;
     Ok(())
 }
 
+// lamedh_http::handler の要求する型は、 Result<Self::Response, Self::Error>>
 async fn func(_: Request, _: Context) -> Result<impl IntoResponse, Error> {
     let mut entries = Vec::new();
 
@@ -49,9 +48,10 @@ async fn func(_: Request, _: Context) -> Result<impl IntoResponse, Error> {
     let html = IndexTemplate { entries };
     let response_body = html.render()?;
 
+    // Ok の中で実施されたものが、成功した場合、返り値として Value を返す。
     Ok(Response::builder()
         .status(200)
         .header("Content-Type", "text/html; charset=UTF-8")
         .body(response_body)
-        .expect("failed to render response")) 
+        .expect("failed to render response"))
 }
