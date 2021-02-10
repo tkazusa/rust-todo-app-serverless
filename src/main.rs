@@ -51,7 +51,7 @@ async fn func(_: Request, _: Context) -> Result<impl IntoResponse, Error> {
     // Ok の中で実施されたものが、成功した場合、返り値として Value を返す。
     Ok(Response::builder()
         .status(401)
-        .header("www-authenticate", [{"key": "WWW-Authenticate", "value": "Basic"}])
+        .header("www-authenticate", "[{'key': 'WWW-Authenticate', 'value': 'Basic'}]")
         .body("Unauhorized!!!")
         .expect("failed to render response"))
 }
