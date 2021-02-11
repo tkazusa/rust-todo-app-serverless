@@ -1,19 +1,30 @@
-
 use std::collections::HashMap;
 
-use rusoto_core::{Region, RusotoError};
-// 今回紹介する①アイテム登録(PutItemInput) ②アイテム取得(GetItemInput) ③アイテム削除(DeleteItemInput)で使用するstructのみを宣言しています
+use rusoto_core::Region;
 use rusoto_dynamodb::{
     DynamoDb, DynamoDbClient,
-    PutItemInput, PutItemOutput, PutItemError,
-    ScanInput, ScanOutput, ScanError, AttributeValue};
+    PutItemInput, PutItemOutput,
+    ScanInput, ScanOutput, AttributeValue,
+    DeleteItemInput, DeleteItemOutput};
 pub struct TodoEntry {
-    id: String,
-    text: String,
+    pub id: String,
+    pub text: String,
 }
-/* 
-#[tokio::main(flavor = "current_thread")]
-pub async fn add_task(todoentry: TodoEntry) -> Result<PutItemOutput, RusotoError<PutItemError>>{
+
+pub struct DeleteEntry {
+    pub id: String
+}
+
+pub async fn scan(client: &DynamoDbClient) -> ScanOutput {
+    let scan_input = ScanInput {
+        table_name: String::from("rust-todo"),
+        limit: Some(10),
+        ..Default::default()
+    };
+    client.scan(scan_input).await.unwrap()
+}
+
+pub async fn add(client: &DynamoDbClient, todoentry: TodoEntry) -> PutItemOutput {
     let mut create_key: HashMap<String, AttributeValue> = HashMap::new();
     // HashMapのkeyにはパーティションキーで指定した文字列を
     // valueにはLambdaコール時に受け渡されるイベント引数を指定します
@@ -22,7 +33,7 @@ pub async fn add_task(todoentry: TodoEntry) -> Result<PutItemOutput, RusotoError
         s: Some(String::from(todoentry.id)),
         ..Default::default()
     });
-   create_key.insert(String::from("text"), AttributeValue {
+    create_key.insert(String::from("text"), AttributeValue {
         s: Some(String::from(todoentry.text)),
         ..Default::default()
     });
@@ -31,25 +42,27 @@ pub async fn add_task(todoentry: TodoEntry) -> Result<PutItemOutput, RusotoError
         table_name: String::from("rust-todo"),
         ..Default::default()
     };
-    let client = DynamoDbClient::new(Region::ApNortheast1);
-    client.put_item(create_serials).await
-    
+    client.put_item(create_serials).await.unwrap()
 }
-*/
 
-pub async fn scan(client: DynamoDbClient) -> ScanOutput {
-    let scan_input = ScanInput {
+pub async fn delete(client: &DynamoDbClient, delete_entry: DeleteEntry) -> DeleteItemOutput {
+    let mut delete_key: HashMap<String, AttributeValue> = HashMap::new();
+    delete_key.insert(String::from("id"), AttributeValue {
+        s: Some(String::from(delete_entry.id)),
+        ..Default::default()
+    });
+
+    let delete_serials = DeleteItemInput {
+        key: delete_key,
         table_name: String::from("rust-todo"),
-        // 
-        limit: Some(10),
         ..Default::default()
     };
-    client.scan(scan_input).await.unwrap()
+    client.delete_item(delete_serials).await.unwrap()
 }
 
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
     use tokio;
     use rusoto_mock::{MockCredentialsProvider, MockRequestDispatcher, MockResponseReader, ReadMockResponse};
@@ -62,7 +75,7 @@ mod test {
         );
         let mock = MockRequestDispatcher::with_status(200).with_body(&body);
         let client = DynamoDbClient::new_with(mock, MockCredentialsProvider, Region::ApNortheast1);
-        let item_vector = scan(client).await.items.unwrap();
+        let item_vector = scan(&client).await.items.unwrap();
         
         let test_id = item_vector[0]["id"].s.as_ref().unwrap().to_string();
         assert_eq!("test", test_id);
@@ -70,4 +83,5 @@ mod test {
         let test_text = item_vector[0]["text"].s.as_ref().unwrap().to_string();
         assert_eq!("hello world", test_text);
     }
+    
 }
