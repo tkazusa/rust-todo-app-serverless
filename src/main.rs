@@ -1,21 +1,14 @@
 use askama::Template;
 use lamedh_runtime::run;
-use lamedh_http::{IntoResponse, Request, Response, handler, http::header::HeaderValue, lambda::{Context, Error}};
+use lamedh_http::{IntoResponse, Request, Response, handler, lambda::{Context, Error}};
  
 use rusoto_core::Region;
 use rusoto_dynamodb::DynamoDbClient;
 
 mod dynamodb_operations;
-use crate::dynamodb_operations::scan;
+use crate::dynamodb_operations::{scan, add, TodoEntry};
 use std::collections::HashMap;
-
-use base64::{encode, decode};
-
-// ToDo のリストを持つ構造体
-struct TodoEntry {
-    id: String,
-    text: String,
-}
+use base64::encode;
 
 #[derive(Template)]
 #[template(path = "index.html")]
@@ -33,11 +26,21 @@ async fn main() -> Result<(), Error> {
 
 // lamedh_http::handler の要求する型は、 Result<Self::Response, Self::Error>>
 async fn func(event: Request, _: Context) -> Result<impl IntoResponse, Error> {
+    let client = DynamoDbClient::new(Region::ApNortheast1);
 
-    if check_authorization_header(event) {
+    if check_authorization_header(&event) {
+        let method = event.method().as_ref();
+        let path = event.uri().path();
+
+        if method == "POST" && path == "/add" {
+            let item_id = scan(&client).await.items.unwrap().len() + 1;
+            // "text=XXX" の形で body 部分が入力されてくるので、get(index=..5) で text= 以降をパースしている。
+            let text = std::str::from_utf8(event.body().get(5.. ).unwrap()).unwrap();
+            let todoentry = TodoEntry{id: item_id.to_string(), text: text.to_string()};
+            let _putitemoutput = add(&client, todoentry).await;
+        }
         let mut entries = Vec::new();
-        let client = DynamoDbClient::new(Region::ApNortheast1);
-        let items_vector = scan(client).await.items.unwrap();
+        let items_vector = scan(&client).await.items.unwrap();
 
         for item in items_vector.iter(){
             entries.push(TodoEntry{
@@ -54,8 +57,8 @@ async fn func(event: Request, _: Context) -> Result<impl IntoResponse, Error> {
             .header("Content-Type", "text/html; charset=UTF-8")
             .body(response_body)
             .expect("failed to render response"))
-    } else {
 
+    } else {
         Ok(Response::builder()
             .status(401)
             .header("WWW-Authenticate", "Basic")
@@ -64,9 +67,9 @@ async fn func(event: Request, _: Context) -> Result<impl IntoResponse, Error> {
     }
 }
 
-fn check_authorization_header(event: Request) -> bool {
-    let mut mapd = HashMap::new();
-    mapd.insert("user1", "pass1");
+fn check_authorization_header(event: &Request) -> bool {
+    let mut accounts = HashMap::new();
+    accounts.insert("user1", "pass1");
     
     let header_auth = event.headers().get("authorization");
     
@@ -75,7 +78,7 @@ fn check_authorization_header(event: Request) -> bool {
         Some(header_auth)  => {
             let auth_value: &str = header_auth.to_str().unwrap();
             // 登録されている user と pass のタプルで loop 
-            for (user, pass) in mapd.iter(){
+            for (user, pass) in accounts.iter(){
                 let str = format!("{}:{}", user, pass);
                 let encoded_value = encode(str);
                 let check_value = format!("Basic {}", encoded_value);
