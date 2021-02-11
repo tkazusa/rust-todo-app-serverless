@@ -13,4 +13,5 @@ rusoto_mock = "0.46.0"
 tokio = "1.1.0"
 lamedh_runtime = "0.3.0"
 lamedh_http = "0.3.0"
+base64 = "0.13.0"
 

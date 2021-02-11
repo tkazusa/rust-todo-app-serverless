@@ -1489,6 +1489,7 @@ name = "todo"
 version = "0.1.0"
 dependencies = [
  "askama",
+ "base64 0.13.0",
  "lamedh_http",
  "lamedh_runtime",
  "rusoto_core",
