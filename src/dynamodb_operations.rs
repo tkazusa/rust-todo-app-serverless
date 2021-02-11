@@ -4,10 +4,15 @@ use rusoto_core::Region;
 use rusoto_dynamodb::{
     DynamoDb, DynamoDbClient,
     PutItemInput, PutItemOutput,
-    ScanInput, ScanOutput, AttributeValue};
+    ScanInput, ScanOutput, AttributeValue,
+    DeleteItemInput, DeleteItemOutput};
 pub struct TodoEntry {
     pub id: String,
     pub text: String,
+}
+
+pub struct DeleteEntry {
+    pub id: String
 }
 
 pub async fn scan(client: &DynamoDbClient) -> ScanOutput {
@@ -38,6 +43,21 @@ pub async fn add(client: &DynamoDbClient, todoentry: TodoEntry) -> PutItemOutput
         ..Default::default()
     };
     client.put_item(create_serials).await.unwrap()
+}
+
+pub async fn delete(client: &DynamoDbClient, delete_entry: DeleteEntry) -> DeleteItemOutput {
+    let mut delete_key: HashMap<String, AttributeValue> = HashMap::new();
+    delete_key.insert(String::from("id"), AttributeValue {
+        s: Some(String::from(delete_entry.id)),
+        ..Default::default()
+    });
+
+    let delete_serials = DeleteItemInput {
+        key: delete_key,
+        table_name: String::from("rust-todo"),
+        ..Default::default()
+    };
+    client.delete_item(delete_serials).await.unwrap()
 }
 
 

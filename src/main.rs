@@ -6,7 +6,7 @@ use rusoto_core::Region;
 use rusoto_dynamodb::DynamoDbClient;
 
 mod dynamodb_operations;
-use crate::dynamodb_operations::{scan, add, TodoEntry};
+use crate::dynamodb_operations::{scan, add, delete, TodoEntry, DeleteEntry};
 use std::collections::HashMap;
 use base64::encode;
 
@@ -39,6 +39,14 @@ async fn func(event: Request, _: Context) -> Result<impl IntoResponse, Error> {
             let todoentry = TodoEntry{id: item_id.to_string(), text: text.to_string()};
             let _putitemoutput = add(&client, todoentry).await;
         }
+
+        if method == "POST" && path == "/delete" {
+            let delete_id = std::str::from_utf8(event.body().get(3.. ).unwrap()).unwrap();
+            let delete_entry = DeleteEntry{id: delete_id.to_string()};
+            let _deleteitemoutput = delete(&client, delete_entry).await;
+        }
+
+
         let mut entries = Vec::new();
         let items_vector = scan(&client).await.items.unwrap();
 
