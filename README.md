@@ -1,13 +1,21 @@
 # Rust ToDo app on AWS serverless sevices
 
-## [WIP]アーキテクチャ図
+## アーキテクチャ図
+
+<img src="img/architecture.png" width="480px">
+
+- Amazon API Gateway をエンドポイントとし、AWS Lambda 上に Todo の閲覧、追加、削除　を操作する API を実装。
+- クライアントからのアクセスに対し、AWS Lambda 上で Rust のテンプレートエンジン `askama` を使って HTML を生成し、レスポンスする。
+- AWS Lambda へリクエストされたタイミングで Basic 認証を実施。
 
 ## requirements
+
 - rust 1.49.0
 - httpie 0.9.8
 
 ## デプロイ手順
-```
+
+```bash
 $ REGION=XXXX
 $ AWS_ACCOUNT_ID=XXXX
 # イメージをビルド
@@ -21,11 +29,14 @@ $ aws lambda update-function-code --function-name todo-app-container --image-uri
 ```
 
 ## AWS Lambda への Rust コンテナのデプロイについて
+
 Rust での AWS Lambda ランタイムについては、awslabs が監理している [`aws-lambda-rust-runtime`](https://github.com/awslabs/aws-lambda-rust-runtime) はあまりメンテナンスされていないので、`lamedh-dev` がフォークしてきた、[aws-lambda-rust-runtime](https://github.com/lamedh-dev/aws-lambda-rust-runtime) を活用している。
 
 
 ## AWS Lambda からのレスポンスについて
+
 [HTTP API の AWS Lambda プロキシ統合の使用](https://docs.aws.amazon.com/ja_jp/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html)にあるように、レスポンスの body だけを記載する場合、下記のように `Content-Type` が `application/json` に指定されてしまう。
+
 ```json
 {
   "isBase64Encoded": false,
@@ -38,6 +49,7 @@ Rust での AWS Lambda ランタイムについては、awslabs が監理して�
 ```
 
 今回のように、ヘッダを変更して、`text/html; charset=UTF-8` などを指定したい場合、
+
 ```json
 {
     "cookies" : ["cookie1", "cookie2"],
@@ -47,9 +59,8 @@ Rust での AWS Lambda ランタイムについては、awslabs が監理して�
     "body": "Hello from Lambda!"
 }   
 ```
+
 といった形のレスポンスを作成する必要がある。今回は `lamedh_http` クレートを使用した。
-
-
 
 
 ## 参考情報
