@@ -15,6 +15,8 @@
 
 ## デプロイ手順
 
+### 一番最初に ECR を作成するところをやらんと、ビルドしたイメージを push する先がない
+
 ```bash
 $ REGION=XXXX
 $ AWS_ACCOUNT_ID=XXXX
