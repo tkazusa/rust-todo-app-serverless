@@ -1,5 +1,5 @@
-from src.entities.base import Base
-from src.props.api_gateway import (
+from app.entities import Base
+from app.props.api_gateway import (
     APIGateway
 )
 

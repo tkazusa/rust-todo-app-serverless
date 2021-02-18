@@ -45,7 +45,7 @@ aws lambda update-function-code --function-name todo-app-container --image-uri $
 
 Rust での AWS Lambda ランタイムについては、awslabs が監理している [`aws-lambda-rust-runtime`](https://github.com/awslabs/aws-lambda-rust-runtime) はあまりメンテナンスされていないので、`lamedh-dev` がフォークしてきた、[aws-lambda-rust-runtime](https://github.com/lamedh-dev/aws-lambda-rust-runtime) を活用している。
 
-## AWS Lambda からのレスポンスについて
+### AWS Lambda からのレスポンスについて
 
 [HTTP API の AWS Lambda プロキシ統合の使用](https://docs.aws.amazon.com/ja_jp/apigateway/latest/developerguide/http-api-develop-integrations-lambda.html)にあるように、レスポンスの body だけを記載する場合、下記のように `Content-Type` が `application/json` に指定されてしまう。
 

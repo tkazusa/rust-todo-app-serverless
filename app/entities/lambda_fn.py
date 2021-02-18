@@ -1,7 +1,13 @@
-from src.entities.base import Base
-from src.props.lambda_fn import (
+from aws_cdk import (
+    core,
+    aws_lambda as _lambda
+    )
+
+from app.entities import Base
+from app.props.lambda_fn import (
     LambdaFn
 )
+
 
 
 class LambdaFnBase(Base):
@@ -19,8 +25,8 @@ class LambdaFn(LambdaFnBase):
         # code         =  ecr_image,
         ## Handler and Runtime must be *FROM_IMAGE*
         ## when provisioning Lambda from Container.
-        handler       = aws_lambda.Handler.FROM_IMAGE,
-        runtime       = aws_lambda.Runtime.FROM_IMAGE,
+        handler       = _lambda.Handler.FROM_IMAGE,
+        runtime       = _lambda.Runtime.FROM_IMAGE,
         # environment   = {"hello":"world"},
         function_name = "todo-app-on-lambda-container-function",
         memory_size   = 128,
