@@ -3,15 +3,15 @@ from aws_cdk import (
     aws_dynamodb as ddb
     )
 
-from src.entities.base import Base
-from src.props.dynamodb import (
+from app.entities import Base
+from app.props.dynamodb import (
     DynamoDB
 )
 
 class DynamoDBBase(Base):
     """DynamoDB基底class"""
 
-    lambda_fn: LambdaFn
+    dynamodb: DynamoDB
 
 
 class DynamoDB(DynamoDBBase):

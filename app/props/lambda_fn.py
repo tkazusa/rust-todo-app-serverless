@@ -12,7 +12,6 @@ from .base import Base
 class LambdaFn(Base):
     id: str
     description: str
-    code: _lambda.EcrImageCode
     handler: _lambda.Handler.FROM_IMAGE
     runtime: _lambda.Runtime.FROM_IMAGE
     function_name: str
