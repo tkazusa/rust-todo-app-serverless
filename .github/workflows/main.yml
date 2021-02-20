@@ -45,5 +45,5 @@ jobs:
         ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPO_NAME }}
         IMAGE_TAG: latest 
       run: |
-        aws lambda update-function-code --function-name todo-app-container --image-uri $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        aws lambda update-function-code --function-name todo-app-on-lambda-container-function --image-uri $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
       working-directory: lambda-image
