@@ -8,8 +8,10 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build
       run: cargo build
+      working-directory: lambda-image
     - name: test
       run: cargo test --verbose
+      working-directory: lambda-image
     
   build-and-push:
     runs-on: ubuntu-latest
@@ -35,6 +37,7 @@ jobs:
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      working-directory: lambda-image
       
     - name: AWS Lambda Update
       env:
@@ -42,4 +45,5 @@ jobs:
         ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPO_NAME }}
         IMAGE_TAG: latest 
       run: |
-        aws lambda update-function-code --function-name todo-app-container --image-uri $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        aws lambda update-function-code --function-name todo-app-on-lambda-container-function --image-uri $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      working-directory: lambda-image
